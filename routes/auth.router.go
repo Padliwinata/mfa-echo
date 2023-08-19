@@ -13,7 +13,7 @@ func NewAuthRouteController(authController controllers.AuthController) AuthRoute
 	return AuthRouteController{authController}
 }
 
-func (rc *AuthRouteController) AuthRoute(e *echo.Echo) {
+func (rc *AuthRouteController) AuthRoute(e *echo.Group) {
 	router := e.Group("/auth")
 
 	router.POST("/register", rc.authController.SignUpUser)

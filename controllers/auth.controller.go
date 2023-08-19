@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -91,6 +92,7 @@ func (ac *AuthController) GenerateTOTP(c echo.Context) error {
 	result := ac.DB.First(&user, "id=?", payload.UserId)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, map[string]interface{}{"status": "fail", "message": "Invalid email or password"})
+		return result.Error
 	}
 
 	dataToUpdate := models.User{
@@ -113,6 +115,7 @@ func (ac *AuthController) VerifyOTP(c echo.Context) error {
 
 	if err := c.Bind(&payload); err != nil {
 		c.JSON(http.StatusBadRequest, map[string]interface{}{"status": "fail", "message": err.Error()})
+		return err
 	}
 
 	data := map[string]interface{}{
@@ -124,11 +127,13 @@ func (ac *AuthController) VerifyOTP(c echo.Context) error {
 	result := ac.DB.First(&user, "id=?", payload.UserId)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, data)
+		return result.Error
 	}
 
 	valid := totp.Validate(payload.Token, user.Otp_secret)
 	if !valid {
 		c.JSON(http.StatusBadRequest, data)
+		return errors.New("Bad Request")
 	}
 
 	dataToUpdate := models.User{
@@ -158,6 +163,7 @@ func (ac *AuthController) ValidateOTP(c echo.Context) error {
 		}
 
 		c.JSON(http.StatusBadRequest, data)
+		return err
 	}
 
 	data := map[string]interface{}{
@@ -169,11 +175,13 @@ func (ac *AuthController) ValidateOTP(c echo.Context) error {
 	result := ac.DB.First(&user, "id=?", payload.UserId)
 	if result.Error != nil {
 		c.JSON(http.StatusBadRequest, data)
+		return result.Error
 	}
 
 	valid := totp.Validate(payload.Token, user.Otp_secret)
 	if !valid {
 		c.JSON(http.StatusBadRequest, data)
+		return errors.New("Bad Request")
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{"otp_valid": true})

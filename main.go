@@ -5,7 +5,9 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Padliwinata/mfa-echo/controllers"
 	"github.com/Padliwinata/mfa-echo/models"
+	"github.com/Padliwinata/mfa-echo/routes"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"gorm.io/driver/sqlite"
@@ -15,6 +17,9 @@ import (
 var (
 	DB *gorm.DB
 	e  *echo.Echo
+
+	AuthController      controllers.AuthController
+	AuthRouteController routes.AuthRouteController
 )
 
 func init() {
@@ -28,6 +33,9 @@ func init() {
 	fmt.Println("Connected successfully")
 
 	e = echo.New()
+
+	AuthController = controllers.NewAuthController(DB)
+	AuthRouteController = routes.NewAuthRouteController(AuthController)
 
 }
 
@@ -48,5 +56,6 @@ func main() {
 
 		return c.JSON(http.StatusOK, data)
 	})
+	AuthRouteController.AuthRoute(router)
 	e.Logger.Fatal(e.Start(":8000"))
 }

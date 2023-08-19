@@ -1,0 +1,14 @@
+# Spacefile Docs: https://go.deta.dev/docs/spacefile/v0
+v: 0
+micros:
+  - name: mfa-echo
+    src: ./
+    engine: custom
+    primary: true
+    commands:
+      - go build -o server
+    include:
+      - server
+    run: ./server
+    public: true
+    dev: go run main.go
