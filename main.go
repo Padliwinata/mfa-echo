@@ -6,11 +6,11 @@ import (
 	"net/http"
 
 	"github.com/Padliwinata/mfa-echo/controllers"
-	"github.com/Padliwinata/mfa-echo/models"
 	"github.com/Padliwinata/mfa-echo/routes"
+	"github.com/deta/deta-go/deta"
+	"github.com/deta/deta-go/service/base"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -24,8 +24,8 @@ var (
 
 func init() {
 	var err error
-	DB, err := gorm.Open(sqlite.Open("golang.db"), &gorm.Config{})
-	DB.AutoMigrate(&models.User{})
+	// DB, err := gorm.Open(sqlite.Open("golang.db"), &gorm.Config{})
+	// DB.AutoMigrate(&models.User{})
 
 	if err != nil {
 		log.Fatal("Failed to connect to the Database")
@@ -34,7 +34,19 @@ func init() {
 
 	e = echo.New()
 
-	AuthController = controllers.NewAuthController(DB)
+	d, err := deta.New()
+	if err != nil {
+		fmt.Println("Failed to create deta instance")
+		return
+	}
+
+	db, err := base.New(d, "user")
+	if err != nil {
+		fmt.Println("Failed to create deta instance")
+		return
+	}
+
+	AuthController = controllers.NewAuthController(DB, db)
 	AuthRouteController = routes.NewAuthRouteController(AuthController)
 
 }
@@ -57,5 +69,5 @@ func main() {
 		return c.JSON(http.StatusOK, data)
 	})
 	AuthRouteController.AuthRoute(router)
-	e.Logger.Fatal(e.Start(":8000"))
+	e.Logger.Fatal(e.Start(":8080"))
 }

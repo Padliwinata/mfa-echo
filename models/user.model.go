@@ -2,23 +2,23 @@ package models
 
 import (
 	uuid "github.com/satori/go.uuid"
-	"gorm.io/gorm"
 )
 
 type User struct {
-	ID       uuid.UUID `gorm:"type:uuid;primary_key;"`
-	Name     string    `gorm:"type:varchar(255);not null"`
-	Email    string    `gorm:"uniqueIndex;not null"`
-	Password string    `gorm:"not null"`
+	ID       uuid.UUID `gorm:"type:uuid;primary_key;" json:"id"`
+	Key      string    `json:"key"`
+	Name     string    `gorm:"type:varchar(255);not null" json:"name"`
+	Email    string    `gorm:"uniqueIndex;not null" json:"email"`
+	Password string    `gorm:"not null" json:"password"`
 
-	Otp_enabled  bool `gorm:"default:false;"`
-	Otp_verified bool `gorm:"default:false;"`
+	Otp_enabled  bool `gorm:"default:false;" json:"otp_enabled"`
+	Otp_verified bool `gorm:"default:false;" json:"otp_verified"`
 
-	Otp_secret   string
-	Otp_auth_url string
+	Otp_secret   string `json:"otp_secret"`
+	Otp_auth_url string `json:"otp_auth_url"`
 }
 
-func (user *User) BeforeCreate(*gorm.DB) error {
+func (user *User) BeforeCreate() error {
 	user.ID = uuid.NewV4()
 
 	return nil
