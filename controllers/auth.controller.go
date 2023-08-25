@@ -38,13 +38,37 @@ func (ac *AuthController) SignUpUser(c echo.Context) error {
 	}
 	newUser.BeforeCreate()
 
+	query := base.Query{
+		{
+			"email?contains": payload.Email,
+			"name?contains":  payload.Name,
+		},
+	}
+
+	var result []map[string]interface{}
+	_, err := ac.db.Fetch(&base.FetchInput{
+		Q:    query,
+		Dest: &result,
+	})
+
+	if len(result) != 0 {
+		return c.JSON(
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"status":  "fail",
+				"message": "User already registered",
+			},
+		)
+	}
+
 	// newUser := map[string]interface{}{
 	// 	"name":     payload.Name,
 	// 	"email":    payload.Email,
 	// 	"password": payload.Password,
 	// }
 	// result := ac.DB.Create(&newUser)
-	_, err := ac.db.Put(newUser)
+
+	_, err = ac.db.Put(newUser)
 
 	// if result.Error != nil && strings.Contains(result.Error.Error(), "duplicate key value violates unique") {
 	// 	return c.JSON(http.StatusConflict, map[string]interface{}{"status": "fail", "message": "Email already exists, please use another email address"})
@@ -243,7 +267,7 @@ func (ac *AuthController) VerifyOTP(c echo.Context) error {
 		"id":          user.ID.String(),
 		"name":        user.Name,
 		"email":       user.Email,
-		"otp_enabled": user.Otp_enabled,
+		"otp_enabled": true,
 	}
 
 	return c.JSON(http.StatusOK, map[string]interface{}{"otp_verified": true, "user": userResponse})
